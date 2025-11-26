@@ -4,7 +4,7 @@
   "description": "Estudo sobre o site https://www.tabnews.com.br desenvolvido durante o curso \"https://curso.dev/\"",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run docker:up && next dev",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
     "test": "jest",
@@ -13,8 +13,7 @@
     "docker:up": "docker compose -f infra/compose.yaml up -d",
     "docker:down": "docker compose -f infra/compose.yaml down",
     "docker:logs": "docker compose -f infra/compose.yaml logs -f",
-    "docker:restart": "npm run docker:down && npm run docker:up",
-    "start": "npm run docker:up && npm run dev"
+    "docker:restart": "npm run docker:down && npm run docker:up"
   },
   "author": "",
   "license": "MIT",
