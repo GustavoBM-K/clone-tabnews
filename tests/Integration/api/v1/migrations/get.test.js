@@ -1,12 +1,10 @@
 import database from "infra/database";
+import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
-  await cleanDataBase();
-});
-
-async function cleanDataBase() {
+  await orchestrator.waitForAllServices();
   await database.query("DROP schema public cascade; CREATE schema public;");
-}
+}) 
 
 export const getEnvironment = () => {
   const MY_ENVIRONMENT_VARIABLE = process.env.POSTGRES_DB;
