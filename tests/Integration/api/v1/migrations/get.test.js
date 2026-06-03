@@ -6,7 +6,7 @@ beforeAll(async () => {
   await database.query("DROP schema public cascade; CREATE schema public;");
 });
 
-export const getEnvironment = () => {
+const getEnvironment = () => {
   const MY_ENVIRONMENT_VARIABLE = process.env.POSTGRES_DB;
   return MY_ENVIRONMENT_VARIABLE;
 };
