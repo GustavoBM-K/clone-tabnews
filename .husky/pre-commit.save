@@ -1,0 +1,11 @@
+#!/bin/shqqq
+echo "Executando verificação de secrets..."
+
+gitleaks git --staged
+
+if [ $? -ne 0 ]; then
+    echo "❌ Possível secret encontrado."
+    exit 1
+fi
+
+echo "✅ Nenhum secret encontrado."
