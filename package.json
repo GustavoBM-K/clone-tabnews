@@ -4,7 +4,8 @@
   "description": "Estudo sobre o site https://www.tabnews.com.br desenvolvido durante o curso \"https://curso.dev/\"",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run docker:up && npm run services:wait:database && npm run migrations:up && next dev",
+    "dev": "node infra/scripts/dev.js",
+    "dev:only": "npm run docker:up && npm run services:wait:database && npm run migrations:up && next dev",
     "test": "npm run docker:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --verbose\" ",
     "posttest": "npm run docker:down",
     "test:watch": "jest --watchAll --runInBand",
