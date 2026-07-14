@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-echo "🔍 Verificando secrets com Gitleaks..."
+echo "🔍 Verificando arquivos em busca de secrets..."
 
-gitleaks protect --staged
+gitleaks protect --staged --verbose
 
 if [ $? -ne 0 ]; then
     echo ""
