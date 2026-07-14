@@ -1,9 +1,8 @@
-import database from "infra/database";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
-  await database.query("DROP schema public cascade; CREATE schema public;");
+  await orchestrator.clearDatabase();
 });
 
 const getEnvironment = () => {
@@ -11,16 +10,20 @@ const getEnvironment = () => {
   return MY_ENVIRONMENT_VARIABLE;
 };
 
-test("GET to /api/v1/migrations should returns 200", async () => {
-  const response = await fetch("http://localhost:3000/api/v1/migrations");
-  expect(response.status).toBe(200);
+describe("GET /api/v1/migrations", () => {
+  describe("Anonymous user", () => {
+    test("Retrieving peding migrations", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/migrations");
+      expect(response.status).toBe(200);
 
-  const responseBody = await response.json();
+      const responseBody = await response.json();
 
-  const environmentValue = getEnvironment();
-  expect(environmentValue).toBe("local_db");
+      const environmentValue = getEnvironment();
+      expect(environmentValue).toBe("local_db");
 
-  expect(Array.isArray(responseBody)).toBe(true);
+      expect(Array.isArray(responseBody)).toBe(true);
 
-  expect(responseBody.length).toBeGreaterThan(0);
+      expect(responseBody.length).toBeGreaterThan(0);
+    });
+  });
 });
