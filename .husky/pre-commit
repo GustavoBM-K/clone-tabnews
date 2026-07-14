@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+echo "🔍 Verificando secrets com Gitleaks..."
+
+gitleaks protect --staged
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Possível secret encontrado. Commit cancelado."
+    exit 1
+fi
+
+echo "✅ Nenhum secret encontrado."
