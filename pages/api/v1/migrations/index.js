@@ -2,20 +2,15 @@ import migrationRunner from "node-pg-migrate";
 import { resolve } from "path";
 import database from "infra/database";
 import { createRouter } from "next-connect";
-import { InternalServerError, MethodNotAllowedError } from "infra/errors";
+import { InternalServerError } from "infra/errors";
 
 const router = createRouter();
 router.get(getHandler);
+router.post(getHandler);
 
-router.handler({
-  onNoMatch: onNoMatchHandler,
+export default router.handler({
   onError: onErrorHandler,
 });
-
-function onNoMatchHandler(request, response) {
-  const publicErrorObject = new MethodNotAllowedError();
-  response.status(publicErrorObject.statusCode).json(publicErrorObject);
-}
 
 function onErrorHandler(error, request, response) {
   const publicErrorObject = new InternalServerError({
@@ -28,55 +23,39 @@ function onErrorHandler(error, request, response) {
   response.status(500).json(publicErrorObject);
 }
 
-async function getHandler(request, response) {}
+async function getHandler(request, response) {
+  let dbClient;
 
-export default async function status(request, response) {
-  const allowedMethods = ["GET", "POST"];
-  if (!allowedMethods.includes(request.method)) {
-    return response
-      .status(405)
-      .json({ error: `Method "${request.method}" not allowed` })
-      .end();
+  dbClient = await database.getNewClient();
+
+  const defaultMigrationsOptions = {
+    dbClient: dbClient,
+    dryRun: true,
+    dir: resolve("infra", "migrations"),
+    direction: "up",
+    migrationsTable: "pgmigrations",
+    verbose: true,
+    noLock: true,
+  };
+
+  if (request.method === "GET") {
+    const pendingMigrations = await migrationRunner(defaultMigrationsOptions);
+    await dbClient.end();
+    return response.status(200).json(pendingMigrations);
   }
 
-  let dbClient;
-  try {
-    dbClient = await database.getNewClient();
+  if (request.method === "POST") {
+    const migratedMigrations = await migrationRunner({
+      ...defaultMigrationsOptions,
+      dryRun: false,
+    });
 
-    const defaultMigrationsOptions = {
-      dbClient: dbClient,
-      dryRun: true,
-      dir: resolve("infra", "migrations"),
-      direction: "up",
-      migrationsTable: "pgmigrations",
-      verbose: true,
-      noLock: true,
-    };
+    await dbClient.end();
 
-    if (request.method === "GET") {
-      const pendingMigrations = await migrationRunner(defaultMigrationsOptions);
-      await dbClient.end();
-      return response.status(200).json(pendingMigrations);
+    if (migratedMigrations.length > 0) {
+      return response.status(201).json(migratedMigrations);
     }
 
-    if (request.method === "POST") {
-      const migratedMigrations = await migrationRunner({
-        ...defaultMigrationsOptions,
-        dryRun: false,
-      });
-
-      await dbClient.end();
-
-      if (migratedMigrations.length > 0) {
-        return response.status(201).json(migratedMigrations);
-      }
-
-      return response.status(200).json(migratedMigrations);
-    }
-  } catch (error) {
-    console.error("Error during migration:", error);
-    throw error;
-  } finally {
-    dbClient.end();
+    return response.status(200).json(migratedMigrations);
   }
 }
